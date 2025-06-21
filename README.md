@@ -107,46 +107,6 @@ Azure__ContainerName="your-container-name"
 - **YOUR-STORAGE-ACCOUNT-KEY**: Azure Storage account key
 - **YOUR-BLOB-CONTAINER-NAME**: Blob container name for documents
 
-### 4. Database Setup
-Ensure your SQL Server database has the required tables:
-
-```sql
--- Create tables
-CREATE TABLE ipx_compounds (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NOT NULL
-);
-
-CREATE TABLE ipx_departments (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NOT NULL,
-    compound_id INT NOT NULL,
-    FOREIGN KEY (compound_id) REFERENCES ipx_compounds(id)
-);
-
-CREATE TABLE ipx_documents (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NOT NULL,
-    url NVARCHAR(500),
-    size BIGINT,
-    sha256 NVARCHAR(64),
-    status NVARCHAR(50),
-    index_name NVARCHAR(255),
-    indexer_name NVARCHAR(255),
-    compound_id INT NOT NULL,
-    FOREIGN KEY (compound_id) REFERENCES ipx_compounds(id)
-);
-
-CREATE TABLE ipx_departments_documents (
-    department_id INT NOT NULL,
-    document_id INT NOT NULL,
-    compound_id INT NOT NULL,
-    PRIMARY KEY (department_id, document_id),
-    FOREIGN KEY (department_id) REFERENCES ipx_departments(id),
-    FOREIGN KEY (document_id) REFERENCES ipx_documents(id),
-    FOREIGN KEY (compound_id) REFERENCES ipx_compounds(id)
-);
-```
 
 ### 5. Run the Application
 ```bash
@@ -314,33 +274,7 @@ Content-Type: application/json
 ```
 
 ## 🐳 Docker Setup
-
-### Dockerfile
-```dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["Ipx.Api.csproj", "."]
-RUN dotnet restore "Ipx.Api.csproj"
-COPY . .
-WORKDIR "/src"
-RUN dotnet build "Ipx.Api.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "Ipx.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Ipx.Api.dll"]
-```
-
 ### Build and Run with Docker
-
 #### Build the Docker Image
 ```bash
 docker build -t ipx-api .
@@ -359,46 +293,6 @@ docker run -d \
   -e Azure__OpenAIKey="your_openai_key" \
   -e Azure__OpenAIDeployment="your_deployment_name" \
   ipx-api
-```
-
-#### Docker Compose (Optional)
-Create a `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-services:
-  ipx-api:
-    build: .
-    ports:
-      - "8080:80"
-    environment:
-      - ConnectionStrings__DefaultConnection=your_connection_string
-      - Azure__SearchEndpoint=your_search_endpoint
-      - Azure__SearchKey=your_search_key
-      - Azure__SearchIndexName=your_index_name
-      - Azure__OpenAIAzureEndpoint=your_openai_endpoint
-      - Azure__OpenAIKey=your_openai_key
-      - Azure__OpenAIDeployment=your_deployment_name
-    depends_on:
-      - sqlserver
-
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourPassword123!
-    ports:
-      - "1433:1433"
-    volumes:
-      - sqlserver_data:/var/opt/mssql
-
-volumes:
-  sqlserver_data:
-```
-
-Run with:
-```bash
-docker-compose up -d
 ```
 
 ## 🧪 Testing
@@ -428,59 +322,6 @@ curl -X POST "https://localhost:7000/api/departments/1/search" \
   -d '{"query": "server maintenance schedule", "documentIds": [1,2,3]}'
 ```
 
-### Testing with Postman
-
-Import the following collection:
-
-```json
-{
-  "info": {
-    "name": "Ipx.Api Collection",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "https://localhost:7000/api"
-    },
-    {
-      "key": "compoundId",
-      "value": "1"
-    }
-  ],
-  "item": [
-    {
-      "name": "Compounds",
-      "item": [
-        {
-          "name": "Get All Compounds",
-          "request": {
-            "method": "GET",
-            "url": "{{baseUrl}}/compounds"
-          }
-        },
-        {
-          "name": "Create Compound",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/compounds",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Sample Compound\"\n}"
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-```
 
 ## 🚀 Development
 
@@ -497,13 +338,6 @@ Ipx.Api/
 └── Dockerfile          # Container Configuration
 ```
 
-### Adding New Features
-
-1. **Create Model**: Add new model in `Models/`
-2. **Create Repository**: Add interface and implementation in `Repositories/`
-3. **Register Services**: Update `Program.cs` with DI registration
-4. **Create Controller**: Add new controller in `Controllers/`
-5. **Update Documentation**: Update this README with new endpoints
 
 ## 🔒 Security Considerations
 
@@ -524,25 +358,7 @@ Consider implementing:
 - Metrics collection
 - Error tracking
 
-## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the API documentation at `/swagger` when running locally
 
 ---
 
-**Built with ❤️ using ASP.NET Core 8.0** 
