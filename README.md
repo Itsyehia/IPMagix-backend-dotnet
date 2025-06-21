@@ -43,23 +43,69 @@ dotnet restore
 ```
 
 ### 3. Configuration
-Update `appsettings.json` with your configuration:
+
+#### Option 1: Using appsettings.json (Not Recommended for Production)
+Copy the template and fill in your values:
+```bash
+cp appsettings.template.json appsettings.local.json
+```
+
+Edit `appsettings.local.json` with your actual configuration values:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Driver={ODBC Driver 18 for SQL Server};Server=your_server;Database=your_db;UID=your_user;PWD=your_password;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+    "DefaultConnection": "Server=tcp:YOUR-SQL-SERVER-NAME.database.windows.net,1433;Database=YOUR-DATABASE-NAME;User ID=YOUR-SQL-USERNAME;Password=YOUR-SQL-PASSWORD;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;"
   },
   "Azure": {
-    "SearchEndpoint": "https://your-search-service.search.windows.net",
-    "SearchKey": "your_search_admin_key",
-    "SearchIndexName": "documents-index",
-    "OpenAIAzureEndpoint": "https://your-openai-service.openai.azure.com/",
-    "OpenAIKey": "your_openai_key",
-    "OpenAIDeployment": "gpt-4"
+    "OpenAIAzureEndpoint": "https://YOUR-OPENAI-RESOURCE-NAME.openai.azure.com/",
+    "OpenAIKey": "YOUR-AZURE-OPENAI-API-KEY",
+    "OpenAIDeployment": "YOUR-OPENAI-DEPLOYMENT-NAME",
+    "SearchEndpoint": "https://YOUR-SEARCH-SERVICE-NAME.search.windows.net",
+    "SearchKey": "YOUR-AZURE-SEARCH-API-KEY",
+    "SearchIndexName": "YOUR-SEARCH-INDEX-NAME",
+    "BlobStorageConnection": "DefaultEndpointsProtocol=https;AccountName=YOUR-STORAGE-ACCOUNT-NAME;AccountKey=YOUR-STORAGE-ACCOUNT-KEY;EndpointSuffix=core.windows.net",
+    "ContainerName": "YOUR-BLOB-CONTAINER-NAME"
   }
 }
 ```
+
+#### Option 2: Using Environment Variables (Recommended)
+Set the following environment variables:
+
+```bash
+# Database Configuration
+ConnectionStrings__DefaultConnection="Server=tcp:your-server.database.windows.net,1433;Database=your-db;User ID=your-user;Password=your-password;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;"
+
+# Azure OpenAI Configuration
+Azure__OpenAIAzureEndpoint="https://your-openai-resource.openai.azure.com/"
+Azure__OpenAIKey="your-openai-api-key"
+Azure__OpenAIDeployment="your-deployment-name"
+
+# Azure Search Configuration
+Azure__SearchEndpoint="https://your-search-service.search.windows.net"
+Azure__SearchKey="your-search-admin-key"
+Azure__SearchIndexName="your-search-index-name"
+
+# Azure Blob Storage Configuration
+Azure__BlobStorageConnection="your-blob-storage-connection-string"
+Azure__ContainerName="your-container-name"
+```
+
+#### Configuration Values Explanation:
+- **YOUR-SQL-SERVER-NAME**: Your Azure SQL Server name (without .database.windows.net)
+- **YOUR-DATABASE-NAME**: Your database name
+- **YOUR-SQL-USERNAME**: SQL Server username
+- **YOUR-SQL-PASSWORD**: SQL Server password
+- **YOUR-OPENAI-RESOURCE-NAME**: Your Azure OpenAI resource name
+- **YOUR-AZURE-OPENAI-API-KEY**: API key from Azure OpenAI resource
+- **YOUR-OPENAI-DEPLOYMENT-NAME**: Name of your GPT model deployment
+- **YOUR-SEARCH-SERVICE-NAME**: Your Azure Cognitive Search service name
+- **YOUR-AZURE-SEARCH-API-KEY**: Admin key from Azure Cognitive Search
+- **YOUR-SEARCH-INDEX-NAME**: Name of your search index
+- **YOUR-STORAGE-ACCOUNT-NAME**: Azure Storage account name
+- **YOUR-STORAGE-ACCOUNT-KEY**: Azure Storage account key
+- **YOUR-BLOB-CONTAINER-NAME**: Blob container name for documents
 
 ### 4. Database Setup
 Ensure your SQL Server database has the required tables:
